@@ -429,6 +429,18 @@ worker:
   log:
     level: "INFO"
 
+  ## Configures the JOB_MAIN_CONTAINER_CPU/MEMORY_LIMITS/REQUESTS
+  ## @param worker.container.limits [object] The resources limits for the job main container
+  ## @param worker.container.requests [object] The requested resources for the job main container
+  container:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""
+  
+
   ## @param worker.extraEnv [array] Additional env vars for worker pod(s).
   ## Example:
   ##
