@@ -11,7 +11,7 @@ from airbyte_cdk.models import SyncMode
 from airbyte_cdk.sources import AbstractSource
 from airbyte_cdk.sources.streams import Stream
 from airbyte_cdk.sources.streams.http.auth import Oauth2Authenticator
-from source_pipedrive.streams import Activities, ActivityFields, Deals, Leads, Organizations, Persons, Pipelines, Stages, Users
+from source_pipedrive.streams import Activities, ActivityFields, DealFlow, Deals, Leads, Organizations, Persons, Pipelines, Stages, Users
 
 
 class SourcePipedrive(AbstractSource):
@@ -31,10 +31,14 @@ class SourcePipedrive(AbstractSource):
         """
         stream_kwargs = self.get_stream_kwargs(config)
         incremental_kwargs = {**stream_kwargs, "replication_start_date": pendulum.parse(config["replication_start_date"])}
+
+        deals_stream = Deals(**incremental_kwargs)
+
         streams = [
             Activities(**incremental_kwargs),
             ActivityFields(**stream_kwargs),
-            Deals(**incremental_kwargs),
+            deals_stream,
+            DealFlow(deals_stream, **stream_kwargs),
             Leads(**stream_kwargs),
             Organizations(**incremental_kwargs),
             Persons(**incremental_kwargs),

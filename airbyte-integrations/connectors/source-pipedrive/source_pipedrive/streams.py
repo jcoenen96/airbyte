@@ -7,7 +7,8 @@ from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Union
 
 import pendulum
 import requests
-from airbyte_cdk.sources.streams.http import HttpStream
+from airbyte_cdk.entrypoint import logger
+from airbyte_cdk.sources.streams.http import HttpStream, HttpSubStream
 from airbyte_cdk.sources.streams.http.auth import NoAuth, Oauth2Authenticator
 
 PIPEDRIVE_URL_BASE = "https://api.pipedrive.com/v1/"
@@ -84,7 +85,11 @@ class PipedriveStream(HttpStream, ABC):
         """
         :return an iterable containing each record in the response
         """
-        records = response.json().get(self.data_field) or []
+        response_data = response.json()
+        if response_data is None:
+            return iter([])
+
+        records = response_data.get(self.data_field) or []
         for record in records:
             record = record.get(self.data_field) or record
             if self.primary_key in record and record[self.primary_key] is None:
@@ -108,6 +113,9 @@ class Deals(PipedriveStream):
     API docs: https://developers.pipedrive.com/docs/api/v1/Deals#getDeals,
     retrieved by https://developers.pipedrive.com/docs/api/v1/Recents#getRecents
     """
+
+    # Overridden to True as DealFlow is substream
+    use_cache = True
 
 
 class Leads(PipedriveStream):
@@ -169,3 +177,22 @@ class Users(PipedriveStream):
         record_gen = super().parse_response(response=response, **kwargs)
         for records in record_gen:
             yield from records
+
+class PipedriveSubstream(PipedriveStream, HttpSubStream, ABC):
+
+    def __init__(self, parent: PipedriveStream, authenticator, replication_start_date=None, **kwargs):
+        super().__init__(parent=parent, authenticator=authenticator, replication_start_date=replication_start_date, **kwargs)
+
+    
+class DealFlow(PipedriveSubstream, ABC):
+    """
+    API docs: https://developers.pipedrive.com/docs/api/v1/Deals#getDealUpdates
+    """
+
+    def __init__(self, deals_stream: Deals, authenticator, replication_start_date=None, **kwargs):
+        super().__init__(parent=deals_stream, authenticator=authenticator, replication_start_date=replication_start_date, **kwargs)
+
+    def path(
+        self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
+    ) -> str:
+        return f"deals/{stream_slice['parent']['id']}/flow"
