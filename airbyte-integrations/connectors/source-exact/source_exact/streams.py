@@ -98,7 +98,8 @@ class ExactStream(HttpStream, IncrementalMixin):
         }
 
         division = str(stream_slice["division"])
-        state = self._state_per_division[division]
+        state = self._state_per_division.get(division, {})
+        # TODO: how to handle case if a division is removed from the config? Keep the state of that division or delete it?
         cursor_value = state.get(self.cursor_field)
 
         if cursor_value:
