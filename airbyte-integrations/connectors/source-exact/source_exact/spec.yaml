@@ -4,9 +4,15 @@ connectionSpecification:
   title: Exact Spec
   type: object
   required:
+    - base_url
     - divisions
     - credentials
   properties:
+    base_url:
+      type: string
+      title: Base URL
+      description: Base URL of the Exact API. Defaults to Dutch version.
+      default: "https://start.exactonline.nl"
     divisions:
       type: array
       minItems: 1

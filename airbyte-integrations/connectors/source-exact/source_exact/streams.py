@@ -28,6 +28,7 @@ class MySingleUseRefreshTokenOauth2Authenticator(SingleUseRefreshTokenOauth2Auth
 class ExactStream(HttpStream, IncrementalMixin):
     def __init__(self, config: Mapping[str, Any]):
         self._divisions = config["divisions"]
+        self._base_url = config["base_url"]
 
         self._state_per_division = {}
         for division in self._divisions:
@@ -35,7 +36,7 @@ class ExactStream(HttpStream, IncrementalMixin):
 
         self._single_refresh_token_authenticator = MySingleUseRefreshTokenOauth2Authenticator(
             connector_config=config,
-            token_refresh_endpoint="https://start.exactonline.nl/api/oauth2/token",
+            token_refresh_endpoint=f"{self._base_url}/api/oauth2/token",
         )
         self._single_refresh_token_authenticator.access_token = config["credentials"]["access_token"]
 
@@ -151,7 +152,7 @@ class ExactStream(HttpStream, IncrementalMixin):
         """Overridden to change the url_base based on the current division, and to keep track of the cursor."""
 
         division = str(stream_slice["division"])
-        self._url_base = f"https://start.exactonline.nl/api/v1/{division}/"
+        self._url_base = f"{self._base_url}/api/v1/{division}/"
 
         self.logger.info(f"Syncing division {division}...")
 
