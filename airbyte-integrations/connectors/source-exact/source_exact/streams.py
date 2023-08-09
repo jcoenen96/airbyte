@@ -113,7 +113,9 @@ class ExactStream(HttpStream, IncrementalMixin):
                 # More details about the API's timezone: see _parse_item.
 
                 if not pendulum.parse(cursor_value).timezone_name in ["UTC", "+00:00"]:
-                    self.logger.warning(f"The value of the cursor field 'Modified' is not detected as a UTC timestamp: {cursor_value}. This might lead to an incorrect $filter clause and unexpected records. ")
+                    self.logger.warning(
+                        f"The value of the cursor field 'Modified' is not detected as a UTC timestamp: {cursor_value}. This might lead to an incorrect $filter clause and unexpected records. "
+                    )
 
                 tz_cet = pendulum.timezone("CET")
                 utc_timestamp = pendulum.parse(cursor_value)
@@ -215,11 +217,11 @@ class ExactStream(HttpStream, IncrementalMixin):
                 match_timestamp = regex_timestamp.match(value)
                 if match_timestamp:
                     cet_unix_seconds = int(match_timestamp.group(1)) / 1000
-                    cet_offset = pendulum.from_timestamp(cet_unix_seconds, 'CET').offset # either 3600 or 7200
+                    cet_offset = pendulum.from_timestamp(cet_unix_seconds, "CET").offset  # either 3600 or 7200
 
                     # Convert CET (+1 or +2) to UTC
                     utc_unix_seconds = cet_unix_seconds - cet_offset
-                    
+
                     # Create timestamp in UTC
                     timestamp = pendulum.from_timestamp(utc_unix_seconds)
 
