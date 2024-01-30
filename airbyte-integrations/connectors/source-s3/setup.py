@@ -6,26 +6,15 @@
 from setuptools import find_packages, setup
 
 MAIN_REQUIREMENTS = [
-    "airbyte-cdk",
-    "pyarrow==9.0.0",
+    "airbyte-cdk[file-based]>=0.57.7",
     "smart-open[s3]==5.1.0",
-    "wcmatch==8.2",
+    "wcmatch==8.4",
     "dill==0.3.4",
     "pytz",
-    "fastavro==1.4.11",
     "python-snappy==0.6.1",
 ]
 
-TEST_REQUIREMENTS = [
-    "pytest~=6.1",
-    "connector-acceptance-test",
-    "pandas==1.3.1",
-    "psutil",
-    "pytest-order",
-    "netifaces~=0.11.0",
-    "docker",
-    "avro==1.11.0",
-]
+TEST_REQUIREMENTS = ["requests-mock~=1.9.3", "pytest-mock~=3.6.1", "pytest~=6.1", "pandas==2.0.3", "docker", "moto"]
 
 setup(
     name="source_s3",
@@ -34,8 +23,25 @@ setup(
     author_email="contact@airbyte.io",
     packages=find_packages(),
     install_requires=MAIN_REQUIREMENTS,
-    package_data={"": ["*.json", "schemas/*.json", "schemas/shared/*.json"]},
+    package_data={
+        "": [
+            # Include yaml files in the package (if any)
+            "*.yml",
+            "*.yaml",
+            # Include all json files in the package, up to 4 levels deep
+            "*.json",
+            "*/*.json",
+            "*/*/*.json",
+            "*/*/*/*.json",
+            "*/*/*/*/*.json",
+        ]
+    },
     extras_require={
         "tests": TEST_REQUIREMENTS,
+    },
+    entry_points={
+        "console_scripts": [
+            "source-s3=source_s3.run:run",
+        ],
     },
 )
